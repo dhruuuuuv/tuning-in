@@ -464,13 +464,19 @@ local function draw_moon(progress)
   screen.fill()
 end
 
--- brief volume hint, top-left: a tiny circle. brightness = level.
+-- brightness for an indicator: map the value across the full 1..15 range, then
+-- apply the fade-out. `val` is 0..1 (the control mapped over its whole range).
+local function hint_level(val, show)
+  local br = math.floor(val * 14 + 1.5)     -- 1 at min, 15 at max
+  local fade = math.min(show, 8)
+  return util.clamp(math.floor(br * fade / 8), 0, 15)
+end
+
+-- brief volume hint, top-left: an outlined circle.
 local function draw_volume_indicator()
   if state.volume_show > 0 then
     state.volume_show = state.volume_show - 1
-    local br = math.floor(state.volume * 12) + 2
-    local fade = math.min(state.volume_show, 8)
-    screen.level(util.clamp(math.floor(br * fade / 8), 0, 15))
+    screen.level(hint_level(state.volume, state.volume_show))
     screen.aa(1)
     screen.line_width(1)
     screen.circle(4, 4, 2)
@@ -479,23 +485,30 @@ local function draw_volume_indicator()
   end
 end
 
--- brief tape/speed hint, bottom-left: a tiny square. brightness = value.
--- (the shift dot up top tells you whether it's tape or speed.)
+-- brief E3 hint, bottom-left. tape is a filled circle; speed is a different
+-- shape (an outlined diamond). brightness spans the full range of each.
 local function draw_e3_indicator()
   if state.e3_show > 0 then
     state.e3_show = state.e3_show - 1
-    local val
     if state.e3_mode == "speed" then
-      val = util.linlin(SPEED_MIN, 1.5, 0, 1, state.speed)
+      local val = util.linlin(SPEED_MIN, 1.5, 0, 1, state.speed)
+      screen.level(hint_level(val, state.e3_show))
+      screen.aa(1)
+      screen.line_width(1)
+      screen.move(4, 57) -- diamond
+      screen.line(7, 60)
+      screen.line(4, 63)
+      screen.line(1, 60)
+      screen.close()
+      screen.stroke()
+      screen.aa(0)
     else
-      val = state.tape
+      screen.level(hint_level(state.tape, state.e3_show))
+      screen.aa(1)
+      screen.circle(4, 60, 2) -- filled circle
+      screen.fill()
+      screen.aa(0)
     end
-    local br = math.floor(val * 12) + 2
-    local fade = math.min(state.e3_show, 8)
-    screen.level(util.clamp(math.floor(br * fade / 8), 0, 15))
-    screen.aa(0)
-    screen.rect(2, 58, 4, 4)
-    screen.stroke()
   end
 end
 
