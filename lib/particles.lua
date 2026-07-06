@@ -36,9 +36,17 @@ end
 -- place a particle at a fresh spawn location for the current scene.
 local function respawn(p)
   p.x = rnd(scene.spawn_x_min, scene.spawn_x_max)
-  p.y = rnd(scene.spawn_y_min, scene.spawn_y_max)
-  p.brightness = 0            -- fade in, never pop
   p.flicker_phase = math.random() * math.pi * 2
+  if scene.fade_above and scene.fade_above >= 0 then
+    -- rising embers (fire): seed across the whole rise with varied brightness,
+    -- so the fire stays continuously populated at every height instead of all
+    -- the embers cycling in lockstep (a burst, then a gap, then a burst).
+    p.y = rnd(scene.fade_above, scene.spawn_y_max)
+    p.brightness = rnd(0, 3)
+  else
+    p.y = rnd(scene.spawn_y_min, scene.spawn_y_max)
+    p.brightness = 0            -- fade in, never pop
+  end
 end
 
 function Particles.init()
@@ -253,14 +261,15 @@ function Particles.draw(mods)
     screen.stroke()
   end
 
-  -- inter-station static speckle (FM tuning): faint dust between stations that
-  -- clears as you lock onto a soundscape. squared to match the audio static.
+  -- inter-station static speckle (FM tuning): a FAINT dusting between stations
+  -- that clears as you land. kept small and dim so it never overwhelms the
+  -- sparse scenes (night especially) -- it should whisper, not take over.
   local tuning = mods.tuning or 0
-  if tuning > 0.02 then
-    local n = math.floor(tuning * tuning * 36)
+  if tuning > 0.05 then
+    local n = math.floor(tuning * tuning * 6)
     screen.aa(0)
     for _ = 1, n do
-      screen.level(math.random(1, 3))
+      screen.level(math.random(1, 2))
       screen.pixel(math.random(0, W - 1), math.random(0, H - 1))
       screen.fill()
     end
