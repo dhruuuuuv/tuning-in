@@ -42,6 +42,8 @@ local state = {
   volume = 0.75,       -- knob position 0..1
 
   volume_show = 0,     -- frames remaining to show the volume indicator
+  e3_show = 0,         -- frames remaining to show the tape/speed hint
+  e3_mode = "tape",    -- which value the E3 hint reflects
 
   -- pause / breath
   paused = false,
@@ -69,6 +71,10 @@ local boot_state = "black"
 local boot_alpha = 0.0     -- title text brightness scale 0..1
 local boot_particle = 0.0  -- particle brightness multiplier during boot
 local redraw_metro
+
+-- corner spiral ornament: slowly rotates, and swells in and out on a long cycle
+local spiral_phase = math.pi -- start in the "absent" half so it appears later
+local spiral_rot = 0.0
 
 -- pre-allocated blended scene (gotcha #4) ----------------------------------
 local blended = {}
@@ -314,6 +320,9 @@ function enc(n, d)
       state.tape = util.clamp(state.tape + step, 0, 1)
       params:set("tape", state.tape)
     end
+    -- brief peripheral hint of the value you're adjusting
+    state.e3_mode = shift_held and "speed" or "tape"
+    state.e3_show = 22
   end
 end
 
@@ -473,6 +482,54 @@ local function draw_volume_indicator()
   end
 end
 
+-- brief tape/speed hint, bottom-left. brightness = the value being adjusted.
+-- (the shift dot up top tells you whether it's tape or speed.)
+local function draw_e3_indicator()
+  if state.e3_show > 0 then
+    state.e3_show = state.e3_show - 1
+    local val
+    if state.e3_mode == "speed" then
+      val = util.linlin(SPEED_MIN, 1.5, 0, 1, state.speed)
+    else
+      val = state.tape
+    end
+    local br = math.floor(val * 12) + 2
+    local fade = math.min(state.e3_show, 8)
+    screen.level(util.clamp(math.floor(br * fade / 8), 0, 15))
+    screen.aa(0)
+    screen.pixel(1, 61)
+    screen.pixel(1, 62)
+    screen.pixel(1, 63)
+    screen.fill()
+  end
+end
+
+-- a tiny spiral in the bottom-right corner. it turns slowly and swells in and
+-- out on a ~60s cycle -- present for a stretch, then gone. peripheral, dim.
+local function draw_spiral()
+  spiral_phase = spiral_phase + 0.0075
+  spiral_rot = spiral_rot + 0.02
+  -- only the top of the slow sine shows, so it's absent most of the cycle and
+  -- fades gently in and out when it does appear.
+  local env = util.clamp((math.sin(spiral_phase) - 0.5) / 0.5, 0, 1)
+  if env < 0.02 then return end
+  local cx, cy = 117, 50
+  local rmax, turns, steps = 8.5, 2.2, 36
+  screen.aa(1)
+  screen.line_width(1)
+  screen.level(math.max(1, math.floor(5 * env + 0.5)))
+  for i = 0, steps do
+    local t = i / steps
+    local theta = (t * turns * 2 * math.pi) + spiral_rot
+    local r = t * rmax
+    local x = cx + r * math.cos(theta)
+    local y = cy + r * math.sin(theta)
+    if i == 0 then screen.move(x, y) else screen.line(x, y) end
+  end
+  screen.stroke()
+  screen.aa(0)
+end
+
 function redraw()
   screen.clear()
 
@@ -516,6 +573,8 @@ function redraw()
 
   -- overlays
   draw_volume_indicator()
+  draw_e3_indicator()
+  draw_spiral()
 
   if shift_held then
     screen.level(8)
