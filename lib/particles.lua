@@ -193,29 +193,9 @@ function Particles.draw(mods)
   local jitter = 0
   if tape > 0.4 then jitter = (tape - 0.4) * 0.6 end
 
-  -- background glow (fire warmth, stream shimmer, dawn ground)
-  if scene.bg_glow_br and scene.bg_glow_br > 0.05 and scene.bg_glow_h > 0 then
-    local pulse = 1.0
-    if scene.flicker and scene.flicker > 0.5 then
-      pulse = 1.0 + math.sin(frame * 0.033 * math.pi) * 0.15 -- fire breathes ~0.5Hz
-    end
-    for row = 0, scene.bg_glow_h - 1 do
-      local y = scene.bg_glow_y + row
-      if y >= 0 and y < H then
-        -- fade toward the far edge of the glow band
-        local f = 1.0 - (row / scene.bg_glow_h)
-        local br = scene.bg_glow_br * f * pulse * br_mult * tape_dim
-        local lvl = math.floor(br + 0.5)
-        if lvl > 0 then
-          screen.level(clamp(lvl, 1, 15))
-          screen.rect(0, y, W, 1)
-          screen.fill()
-        end
-      end
-    end
-  end
-
-  -- (no horizon line -- a flat moving/steady line detracts from the scene)
+  -- (no background glow bands and no horizon line -- full-width horizontal
+  --  strips read as "lines" and, worse, the -1 no-glow sentinel interpolated
+  --  during transitions, sweeping ghost bands across the screen. particles only.)
 
   -- particles
   local trail = scene.trail or 0
