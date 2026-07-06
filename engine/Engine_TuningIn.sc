@@ -11,6 +11,7 @@ Engine_TuningIn : CroneEngine {
 	var <folder;
 	var <server;
 	var isTone;   // per-index: was this buffer a generated fallback tone?
+	var isLoading = false;   // guard against overlapping load routines
 
 	*new { arg context, doneCallback;
 		^super.new(context, doneCallback);
@@ -45,9 +46,10 @@ Engine_TuningIn : CroneEngine {
 			if(synth.notNil) { synth.set(\volume, msg[1]) };
 		});
 
-		// load from the default path immediately so the engine is usable even
-		// if lua never sends a folder command.
-		this.loadBuffers;
+		// NOTE: do NOT auto-load here. lua sends the `folder` command from init()
+		// with the correct install path, which triggers the single load. loading
+		// here as well would race that load (double synths, orphaned buffers) and
+		// can wedge the engine on `;restart`.
 	}
 
 	// build the SynthDef once. buffers are supplied as args at Synth creation,
@@ -122,6 +124,11 @@ Engine_TuningIn : CroneEngine {
 	// (re)load the six buffers from `folder`, generating a fallback tone for
 	// any file that is missing. rebuilds the synth once everything is ready.
 	loadBuffers {
+		if(isLoading) {
+			"tuning in: load already in progress — ignoring".postln;
+			^this;
+		};
+		isLoading = true;
 		Routine {
 			var anyTone = false;
 
@@ -166,6 +173,8 @@ Engine_TuningIn : CroneEngine {
 			} {
 				"tuning in: all six loops loaded".postln;
 			};
+
+			isLoading = false;
 		}.play;
 	}
 
