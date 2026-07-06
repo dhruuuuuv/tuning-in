@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# prepare_audio.sh — turn a raw recording into an ambiance loop:
+# prepare_audio.sh — turn a raw recording into a tuning-in loop:
 #   mono · 48kHz · loudness-matched · seamless crossfade loop · FLAC
 #
 # usage:

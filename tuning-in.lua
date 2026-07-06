@@ -1,28 +1,28 @@
--- ambiance: nature soundscapes
--- v1.0.0 @dhruvc
+-- tuning in: nature soundscapes
+-- v1.0.0 @muchmetta
 -- llllllll.co/t/XXXXX
 --
 -- E2 blend through six landscapes
--- E3 stability (tape degradation)
+-- E3 tape (degradation)
 -- K1+E3 tape speed
 --
 -- K2 pause / sleep timer
--- K3 reset stability
+-- K3 reset tape
 -- K1+K3 reset speed
 
-engine.name = "Ambiance"
+engine.name = "TuningIn"
 
-local scenes = include("ambiance/lib/scene_data")
-local particles = include("ambiance/lib/particles")
+local scenes = include("tuning-in/lib/scene_data")
+local particles = include("tuning-in/lib/particles")
 
 -- encoder sensitivities (gotcha #9: tune on real hardware) -----------------
 local BLEND_SENS = 0.035
-local STAB_SENS  = 0.01
+local TAPE_SENS  = 0.01
 local SPEED_SENS = 0.008
 
 -- per-event delta clamps (addendum UX #7) ----------------------------------
 local BLEND_MAX_STEP = 0.2
-local STAB_MAX_STEP  = 0.05
+local TAPE_MAX_STEP  = 0.05
 local SPEED_MAX_STEP  = 0.03
 
 local SLEEP_DURATION = 1800 -- 30 minutes, seconds
@@ -30,7 +30,7 @@ local SLEEP_DURATION = 1800 -- 30 minutes, seconds
 -- state --------------------------------------------------------------------
 local state = {
   blend = 0.0,
-  stability = 0.0,     -- raw knob value 0..1 (curve applied before engine)
+  tape = 0.0,          -- raw knob value 0..1 (curve applied before engine)
   speed = 1.0,
   volume = 0.75,       -- knob position 0..1
 
@@ -75,8 +75,8 @@ local function lerp_scene_into(dst, a, b, t)
   end
 end
 
--- smoothstep curve for the stability knob (spec: gentle → sweet → dramatic)
-local function apply_stability_curve(raw)
+-- smoothstep curve for the tape knob (spec: gentle → sweet → dramatic)
+local function apply_tape_curve(raw)
   return raw * raw * (3 - 2 * raw)
 end
 
@@ -89,8 +89,8 @@ local function push_volume()
   engine.volume(amp)
 end
 
-local function push_stability()
-  engine.stability(apply_stability_curve(state.stability))
+local function push_tape()
+  engine.tape(apply_tape_curve(state.tape))
 end
 
 local function mark_input()
@@ -100,7 +100,7 @@ end
 
 -- params (defaults → read → bang, per gotcha #8) ---------------------------
 local function setup_params()
-  params:add_separator("ambiance")
+  params:add_separator("tuning in")
 
   params:add_control("blend", "blend",
     controlspec.new(0, 5, "lin", 0, 0.0))
@@ -109,11 +109,11 @@ local function setup_params()
     engine.blend(v)
   end)
 
-  params:add_control("stability", "stability",
+  params:add_control("tape", "tape",
     controlspec.new(0, 1, "lin", 0, 0.0))
-  params:set_action("stability", function(v)
-    state.stability = v
-    push_stability()
+  params:set_action("tape", function(v)
+    state.tape = v
+    push_tape()
   end)
 
   params:add_control("speed", "speed",
@@ -175,6 +175,7 @@ local function run_boot()
     state.pause_vol_cur = 1.0
     state.pause_vol = 1.0
     push_volume()
+    booting = false  -- release the input gate; normal running from here
     boot_state = "run"
     mark_input()
   end)
@@ -244,7 +245,7 @@ function tick()
 
   particles.set_targets(blended)
   particles.update({
-    stability = state.stability,
+    tape = state.tape,
     speed = state.speed * (1.0 - 0.1 * dm),
     speed_mult = state.breath_speed_cur,
     br_mult = state.breath_br_cur,
@@ -297,10 +298,10 @@ function enc(n, d)
       state.speed = sp
       params:set("speed", sp)
     else
-      -- stability
-      local step = util.clamp(d * STAB_SENS, -STAB_MAX_STEP, STAB_MAX_STEP)
-      state.stability = util.clamp(state.stability + step, 0, 1)
-      params:set("stability", state.stability)
+      -- tape
+      local step = util.clamp(d * TAPE_SENS, -TAPE_MAX_STEP, TAPE_MAX_STEP)
+      state.tape = util.clamp(state.tape + step, 0, 1)
+      params:set("tape", state.tape)
     end
   end
 end
@@ -331,8 +332,8 @@ function key(n, z)
       -- reset speed to 1.0 (0.3s glide)
       glide_param("speed", state.speed, 1.0, 0.3)
     else
-      -- reset stability to 0.0 (0.5s glide)
-      glide_param("stability", state.stability, 0.0, 0.5)
+      -- reset tape to 0.0 (0.5s glide)
+      glide_param("tape", state.tape, 0.0, 0.5)
     end
   end
 end
@@ -477,7 +478,7 @@ function redraw()
         screen.font_face(1)
         screen.font_size(8)
         screen.aa(0)
-        local txt = "ambiance"
+        local txt = "tuning in"
         local w = screen.text_extents(txt)
         screen.move(64 - w / 2, 36)
         screen.text(txt)
@@ -493,7 +494,7 @@ function redraw()
 
   particles.set_targets(blended)
   particles.draw({
-    stability = state.stability,
+    tape = state.tape,
     br_mult = br_mult,
   })
 
@@ -517,5 +518,5 @@ function redraw()
 end
 
 function cleanup()
-  params:write() -- remember blend / stability / speed / volume
+  params:write() -- remember blend / tape / speed / volume
 end

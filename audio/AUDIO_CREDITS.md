@@ -4,7 +4,7 @@ all six soundscapes are sourced from [freesound.org](https://freesound.org)
 and released under **Creative Commons 0 (CC0 / public domain)**. no attribution
 is legally required, but the original authors are credited here with thanks.
 
-each file was processed for ambiance: trimmed to a ~40s section (from 0:10),
+each file was processed for tuning in: trimmed to a ~40s section (from 0:10),
 folded to mono, resampled to 48kHz, loudness-normalised to −20 LUFS (so all six
 match), and given a 2-second seamless crossfade loop (final length 38s).
 

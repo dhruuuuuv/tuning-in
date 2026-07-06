@@ -1,7 +1,7 @@
--- ambiance/lib/scene_data.lua
+-- tuning-in/lib/scene_data.lua
 -- the six scene parameter tables. the blend control interpolates between
 -- adjacent scenes. every field is a plain number so the tables can be
--- lerped in-place (see lerp_scene_into in ambiance.lua).
+-- lerped in-place (see lerp_scene_into in tuning-in.lua).
 
 local scenes = {
   { -- 1: birdsong (blend 0.0) -- dawn, sparse bright dots drifting

@@ -1,13 +1,13 @@
-// test_engine.scd — audition the ambiance engine on a desktop, no norns needed.
+// test_engine.scd — audition the tuning-in engine on a desktop, no norns needed.
 //
-// this mirrors engine/Engine_Ambiance.sc as a plain SynthDef + a slider GUI so
+// this mirrors engine/Engine_TuningIn.sc as a plain SynthDef + a slider GUI so
 // you can hear the crossfade and tape degradation before deploying to hardware.
 //
 // how to run:
 //   1. install SuperCollider:  brew install --cask supercollider
 //   2. open this file in the SuperCollider IDE (SCIDE)
 //   3. put the cursor inside the block below and press Cmd+Return to evaluate
-//   4. a window of sliders appears — sweep blend / stability / speed / volume
+//   4. a window of sliders appears — sweep blend / tape / speed / volume
 //   5. to stop: press Cmd+. (period)  — silences everything
 //
 // blend positions: 0 birdsong · 1 forest · 2 rain · 3 stream · 4 fire · 5 night
@@ -38,14 +38,14 @@ s.waitForBoot({
 
 	s.sync;
 
-	// --- the engine DSP (kept in sync with Engine_Ambiance.sc) -------------
-	SynthDef(\ambiance_test, {
-		arg out = 0, blend = 0, stability = 0, speed = 1, volume = 0.5,
+	// --- the engine DSP (kept in sync with Engine_TuningIn.sc) -------------
+	SynthDef(\tuningin_test, {
+		arg out = 0, blend = 0, tape = 0, speed = 1, volume = 0.5,
 		buf0, buf1, buf2, buf3, buf4, buf5;
 
 		var bufs = [buf0, buf1, buf2, buf3, buf4, buf5];
 		var blendLag = Lag.kr(blend, 0.08);
-		var stab     = Lag.kr(stability, 0.15);
+		var stab     = Lag.kr(tape, 0.15);
 		var baseRate = Lag.kr(speed, 0.15);
 		var vol      = Lag.kr(volume, 0.05);
 		var sigs, mix, drive, bump, lpf, dropRate, dropTrig, dropEnv, hiss;
@@ -85,7 +85,7 @@ s.waitForBoot({
 
 	s.sync;
 
-	syn = Synth(\ambiance_test, [
+	syn = Synth(\tuningin_test, [
 		\buf0, buffers[0], \buf1, buffers[1], \buf2, buffers[2],
 		\buf3, buffers[3], \buf4, buffers[4], \buf5, buffers[5],
 		\volume, 0.5
@@ -93,7 +93,7 @@ s.waitForBoot({
 
 	// --- GUI ---------------------------------------------------------------
 	AppClock.sched(0, {
-		win = Window("ambiance — engine test", Rect(200, 200, 460, 260)).front;
+		win = Window("tuning in — engine test", Rect(200, 200, 460, 260)).front;
 		win.view.decorator = FlowLayout(win.view.bounds);
 		win.onClose = { syn.free; buffers.do(_.free) };
 
@@ -104,7 +104,7 @@ s.waitForBoot({
 		};
 
 		mk.("blend",     0, 5,   0,   \blend);
-		mk.("stability", 0, 1,   0,   \stability);
+		mk.("tape", 0, 1,   0,   \tape);
 		mk.("speed",     0.5, 1.5, 1, \speed);
 		mk.("volume",    0, 1,   0.5, \volume);
 
@@ -112,6 +112,6 @@ s.waitForBoot({
 			"0 birdsong  1 forest  2 rain  3 stream  4 fire  5 night");
 	});
 
-	"\nambiance engine test running. Cmd+. to stop.".postln;
+	"\ntuning in engine test running. Cmd+. to stop.".postln;
 });
 )
