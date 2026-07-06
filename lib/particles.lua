@@ -112,10 +112,11 @@ function Particles.update(mods)
       local goal = should_be and tbr or 0
       p.brightness = p.brightness + (goal - p.brightness) * SMOOTH
 
-      -- fire flicker: warm organic flicker, not per-frame strobing
+      -- fire flicker: advance the phase only. the brightness offset is applied
+      -- at DRAW time -- adding it to the persistent brightness here would feed
+      -- through the lerp as a leaky integrator and amplify into a hard strobe.
       if scene.flicker and scene.flicker > 0.5 then
         p.flicker_phase = p.flicker_phase + 0.1 + math.random() * 0.05
-        p.brightness = p.brightness + math.sin(p.flicker_phase) * 3
       end
 
       -- integrate position
@@ -229,7 +230,12 @@ function Particles.draw(mods)
   for i = 1, POOL do
     local p = particles[i]
     if p.active and p.brightness > 0.5 then
-      local br = p.brightness * br_mult * tape_dim
+      -- fire flicker as a transient ±3 draw offset (not accumulated -- see update)
+      local flick = 0
+      if scene.flicker and scene.flicker > 0.5 then
+        flick = math.sin(p.flicker_phase) * 3
+      end
+      local br = (p.brightness + flick) * br_mult * tape_dim
       local lvl = clamp(math.floor(br + 0.5), 1, 15)
 
       -- draw-position jitter, grows subtly with tape (not real position)

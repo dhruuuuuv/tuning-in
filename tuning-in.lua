@@ -161,6 +161,15 @@ local function run_boot()
     end
     boot_alpha = 0.0
 
+    -- the synth now exists (buffers loaded during the title). push the current
+    -- control values to it: params:bang() ran at init before the synth existed,
+    -- so it only ever received defaults. without this, a restored pset shows the
+    -- right scene but plays birdsong until you touch an encoder.
+    engine.blend(state.blend)
+    push_tape()
+    engine.speed(state.speed)
+    push_volume()
+
     -- fade sound in from silence over 3s, particles in over 2s
     -- (input stays gated until the reveal completes -- gotcha #3)
     boot_state = "reveal"
