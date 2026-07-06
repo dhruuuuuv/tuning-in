@@ -1,71 +1,53 @@
 # audio credits
 
-all soundscapes are sourced from [freesound.org](https://freesound.org) under
-Creative Commons licences. fill in one entry per file below before you ship.
-attribution is **required** for CC-BY and CC Sampling+ sounds, and included
-here for CC0 sounds too as a courtesy.
+all six soundscapes are sourced from [freesound.org](https://freesound.org)
+and released under **Creative Commons 0 (CC0 / public domain)**. no attribution
+is legally required, but the original authors are credited here with thanks.
 
-> licence guide — prefer **CC0** (no conditions) or **CC-BY** (credit required).
-> CC-BY-NC forbids commercial redistribution; only use it for private setups.
-> when a sound is edited (trimmed, looped, normalised), CC-BY still applies to
-> the derivative — keep the credit.
-
-for each sound, record: title, author, freesound URL, licence, and a note if
-you modified it.
+each file was processed for ambiance: trimmed to a ~40s section (from 0:10),
+folded to mono, resampled to 48kHz, loudness-normalised to −20 LUFS (so all six
+match), and given a 2-second seamless crossfade loop (final length 38s).
 
 ---
 
 ## 01_birdsong
 
-- **title:** _<title>_
-- **author:** _<username>_
-- **source:** https://freesound.org/s/<id>/
-- **licence:** _CC0 / CC-BY 4.0 / CC-BY 3.0 / CC Sampling+_
-- **modifications:** trimmed to ~40s, loudness-normalised, seamless loop join
+- **title:** Birdsong evening 22 May 2024 close to Poyntzpass Northern Ireland
+- **author:** opentothought
+- **source:** https://freesound.org/people/opentothought/sounds/736710/
+- **licence:** Creative Commons 0
 
 ## 02_forest
 
-- **title:** _<title>_
-- **author:** _<username>_
-- **source:** https://freesound.org/s/<id>/
-- **licence:** _..._
-- **modifications:** _..._
+- **title:** Queensland Rainforest
+- **author:** EvilDavo
+- **source:** https://freesound.org/people/EvilDavo/sounds/507156/
+- **licence:** Creative Commons 0
 
 ## 03_rain
 
-- **title:** _<title>_
-- **author:** _<username>_
-- **source:** https://freesound.org/s/<id>/
-- **licence:** _..._
-- **modifications:** _..._
+- **title:** gentle steady spring rain city
+- **author:** Garuda1982
+- **source:** https://freesound.org/people/Garuda1982/sounds/852917/
+- **licence:** Creative Commons 0
 
 ## 04_stream
 
-- **title:** _<title>_
-- **author:** _<username>_
-- **source:** https://freesound.org/s/<id>/
-- **licence:** _..._
-- **modifications:** _..._
+- **title:** Stream flow over the stones in the fields in spring
+- **author:** lastraindrop
+- **source:** https://freesound.org/people/lastraindrop/sounds/730159/
+- **licence:** Creative Commons 0
 
 ## 05_fire
 
-- **title:** _<title>_
-- **author:** _<username>_
-- **source:** https://freesound.org/s/<id>/
-- **licence:** _..._
-- **modifications:** _..._
+- **title:** Campfire 01
+- **author:** HECKFRICKER
+- **source:** https://freesound.org/people/HECKFRICKER/sounds/729395/
+- **licence:** Creative Commons 0
 
 ## 06_night
 
-- **title:** _<title>_
-- **author:** _<username>_
-- **source:** https://freesound.org/s/<id>/
-- **licence:** _..._
-- **modifications:** _..._
-
----
-
-### attribution line format (for CC-BY)
-
-> "<title>" by <author> — https://freesound.org/s/<id>/ — licensed under
-> <licence>. modified for ambiance.
+- **title:** Crickets At Night - Raw sound
+- **author:** Defelozedd94
+- **source:** https://freesound.org/people/Defelozedd94/sounds/522299/
+- **licence:** Creative Commons 0
