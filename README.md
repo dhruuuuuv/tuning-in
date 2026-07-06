@@ -12,8 +12,8 @@ control ages and worbles the sound.
 | control | action |
 | --- | --- |
 | **E1** | volume |
-| **E2** | blend — an endless loop through the six soundscapes |
-| **E3** | tape — degradation (pristine → warm → worn → memory) |
+| **E2** | blend: an endless loop through the six soundscapes |
+| **E3** | tape: degradation (pristine → warm → worn → memory) |
 | **K1 + E3** | tape speed (0.05× to 1.5×) |
 | **K2** tap | pause / resume (2s fade) |
 | **K2** hold 2s | start a 30-minute sleep timer |
@@ -59,7 +59,7 @@ tuning in ships with six short loops. drop your own recordings into
 each should be mono, 48kHz, seamlessly loopable, 30–45 seconds. FLAC is
 preferred (lossless, ~half the size of WAV); WAV and AIFF also load. the
 filename must start with the two-digit index and an underscore (`01_`, `02_`,
-…) — anything after that is free. if no files are found, gentle test tones are
+…), anything after that is free. if no files are found, gentle test tones are
 generated on first run so the script still works.
 
 the six loops sound best when they feel like one world: matched loudness, all
@@ -68,7 +68,7 @@ mono, with a seamless ~2-second crossfade at the loop join.
 ### sourcing from freesound
 
 the bundled loops are from [freesound.org](https://freesound.org) under
-permissive Creative Commons licences. keep them **simple and minimal** — a
+permissive Creative Commons licences. keep them **simple and minimal**. a
 single steady texture per file, not a busy montage. that is what lets the
 crossfade sound like walking between places rather than switching stations.
 
@@ -93,7 +93,7 @@ export FREESOUND_TOKEN=...
 ```
 
 `prepare_audio.sh` folds to mono, resamples to 48kHz, loudness-matches all six
-to the same target, and builds a seamless crossfade loop — writing e.g.
+to the same target, and builds a seamless crossfade loop: writing e.g.
 `audio/03_rain.flac`. tune the section with env vars:
 
 ```
