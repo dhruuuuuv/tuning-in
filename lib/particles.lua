@@ -188,9 +188,9 @@ function Particles.draw(mods)
   local br_mult = mods.br_mult or 1.0
   -- the display ages with the sound (addendum UX #6)
   local tape_dim = 1.0 - (tape * 0.15)
-  -- position jitter grows with tape
+  -- position jitter grows with tape (kept subtle)
   local jitter = 0
-  if tape > 0.3 then jitter = (tape - 0.3) * 1.4 end
+  if tape > 0.4 then jitter = (tape - 0.4) * 0.6 end
 
   -- background glow (fire warmth, stream shimmer, dawn ground)
   if scene.bg_glow_br and scene.bg_glow_br > 0.05 and scene.bg_glow_h > 0 then
@@ -214,23 +214,12 @@ function Particles.draw(mods)
     end
   end
 
-  -- horizon line
+  -- horizon line (steady -- the ground anchor, never moves)
   if scene.horizon_y and scene.horizon_y >= 0 and scene.horizon_br > 0.5 then
-    local hy = scene.horizon_y
-    if tape > 0.6 then
-      hy = hy + math.sin(frame * 0.1) * tape * 2 -- wobble
-    end
     local lvl = math.floor(scene.horizon_br * br_mult * tape_dim + 0.5)
     if lvl > 0 then
       screen.level(clamp(lvl, 1, 15))
-      if tape > 0.8 then
-        -- horizon breaks into dashed segments when falling apart
-        for x = 0, W - 1, 6 do
-          screen.rect(x, hy, 3, 1)
-        end
-      else
-        screen.rect(0, hy, W, 1)
-      end
+      screen.rect(0, scene.horizon_y, W, 1)
       screen.fill()
     end
   end
@@ -241,24 +230,13 @@ function Particles.draw(mods)
     local p = particles[i]
     if p.active and p.brightness > 0.5 then
       local br = p.brightness * br_mult * tape_dim
-      local lvl = math.floor(br + 0.5)
+      local lvl = clamp(math.floor(br + 0.5), 1, 15)
 
-      -- ghost-signal: rare single-frame brightness inversion at high tape
-      if tape > 0.8 and math.random() < 0.02 then
-        lvl = 15 - lvl
-      end
-      lvl = clamp(lvl, 1, 15)
-
-      -- draw position jitter (does not affect real position)
+      -- draw-position jitter, grows subtly with tape (not real position)
       local jx, jy = 0, 0
       if jitter > 0 then
         jx = (math.random() * 2 - 1) * jitter
         jy = (math.random() * 2 - 1) * jitter
-      end
-      -- occasional visual dropout: a particle jumps and lerps back
-      if tape > 0.6 and math.random() < (tape - 0.6) * 0.01 then
-        jx = jx + rnd(-6, 6)
-        jy = jy + rnd(-6, 6)
       end
 
       local dx_draw = p.x + jx

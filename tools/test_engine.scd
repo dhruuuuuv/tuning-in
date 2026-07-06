@@ -53,7 +53,7 @@ s.waitForBoot({
 		sigs = Array.fill(6, { |i|
 			var buf = bufs[i];
 			var wowRate = LFNoise1.kr(0.1 + (i * 0.013)).range(0.3, 0.9);
-			var wow = SinOsc.kr(wowRate, i * 0.7) * stab * 0.018;
+			var wow = SinOsc.kr(wowRate, i * 0.7) * stab * 0.024;
 			var flutRate = LFNoise1.kr(0.3 + (i * 0.04)).range(5, 11);
 			var flut = SinOsc.kr(flutRate, i * 1.3) * stab * 0.004;
 			var drift = LFNoise2.kr(0.03 + (i * 0.007)) * stab * 0.008;
@@ -70,14 +70,14 @@ s.waitForBoot({
 		mix = (mix * drive).tanh / max(drive, 1);
 		bump = stab.linlin(0, 1, 0, 6);
 		mix = BLowShelf.ar(mix, 100, 0.7, bump);
-		lpf = stab.linexp(0, 1, 20000, 1800);
+		lpf = stab.linexp(0, 1, 20000, 1400);
 		mix = LPF.ar(mix, Lag.kr(lpf, 0.5));
 		dropRate = stab.linlin(0.65, 1, 0, 0.15).max(0);
 		dropTrig = Dust.kr(dropRate);
 		dropEnv = EnvGen.kr(Env.new([1, 0.15, 1], [0.03, 0.08], \sin), dropTrig);
 		mix = mix * dropEnv;
 		hiss = BPF.ar(WhiteNoise.ar(1), 5000, 0.8)
-			* stab.linlin(0, 1, 0, 0.04) * LFNoise2.kr(0.5).range(0.7, 1.0);
+			* stab.linlin(0, 1, 0, 0.06) * LFNoise2.kr(0.5).range(0.7, 1.0);
 		mix = mix + hiss;
 		mix = mix * vol;
 		Out.ar(out, [mix, mix]);

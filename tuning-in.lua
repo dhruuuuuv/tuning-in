@@ -16,14 +16,16 @@ local scenes = include("tuning-in/lib/scene_data")
 local particles = include("tuning-in/lib/particles")
 
 -- encoder sensitivities (gotcha #9: tune on real hardware) -----------------
-local BLEND_SENS = 0.035
-local TAPE_SENS  = 0.01
-local SPEED_SENS = 0.008
+-- bumped up from the spec estimates: the originals needed several rotations
+-- per control. these target roughly: blend ~1.5 turns, tape/speed ~1 turn.
+local BLEND_SENS = 0.09
+local TAPE_SENS  = 0.045
+local SPEED_SENS = 0.03
 
 -- per-event delta clamps (addendum UX #7) ----------------------------------
-local BLEND_MAX_STEP = 0.2
-local TAPE_MAX_STEP  = 0.05
-local SPEED_MAX_STEP  = 0.03
+local BLEND_MAX_STEP = 0.5
+local TAPE_MAX_STEP  = 0.15
+local SPEED_MAX_STEP  = 0.08
 
 local SLEEP_DURATION = 1800 -- 30 minutes, seconds
 
@@ -275,7 +277,7 @@ function enc(n, d)
 
   if n == 1 then
     -- volume, -48..0 dB
-    state.volume = util.clamp(state.volume + d * 0.01, 0, 1)
+    state.volume = util.clamp(state.volume + d * 0.02, 0, 1)
     params:set("volume", state.volume)
     state.volume_show = 22 -- ~1.5s at 15fps
 
