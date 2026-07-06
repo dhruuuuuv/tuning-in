@@ -85,6 +85,25 @@ crossfade sound like walking between places rather than switching stations.
 CC-BY sounds require attribution; CC0 sounds do not, but we credit them anyway.
 prefer CC0 or CC-BY. avoid CC-BY-NC unless you are not redistributing.
 
+### preparing loops
+
+two helper scripts (need `ffmpeg`; the search script also needs `curl`+`jq`):
+
+```
+# audition CC0 / CC-BY candidates (needs a free freesound API key)
+export FREESOUND_TOKEN=...
+./tools/freesound_search.sh "steady rain loop"
+
+# turn a downloaded recording into a finished loop for a given slot
+#   (slots: 1 birdsong  2 forest  3 rain  4 stream  5 fire  6 night)
+./tools/prepare_audio.sh 3 ~/Downloads/rain.wav
+```
+
+`prepare_audio.sh` folds to mono, resamples to 48kHz, loudness-matches all
+six to the same target, and builds a seamless crossfade loop — writing e.g.
+`audio/03_rain.flac`. tune the section and loop with env vars:
+`START=12 LEN=40 XF=2 ./tools/prepare_audio.sh 3 rain.wav`.
+
 
 ## requirements
 
