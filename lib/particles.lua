@@ -195,8 +195,13 @@ function Particles.draw(mods)
 
   local tape = mods.tape or 0
   local br_mult = mods.br_mult or 1.0
+  local tuning = mods.tuning or 0
   -- the display ages with the sound (addendum UX #6)
   local tape_dim = 1.0 - (tape * 0.15)
+  -- fade the scene down toward the transition midpoint: leaving a station dims
+  -- (A fading out), it's dimmest + static-y in the middle, then it brightens
+  -- into the next (B fading in) -- a visual crossfade to match the audio.
+  local transition_dim = 1.0 - (0.55 * tuning)
   -- position jitter grows with tape (kept subtle)
   local jitter = 0
   if tape > 0.4 then jitter = (tape - 0.4) * 0.6 end
@@ -215,7 +220,7 @@ function Particles.draw(mods)
       if scene.flicker and scene.flicker > 0.5 then
         flick = math.sin(p.flicker_phase) * 3
       end
-      local br = (p.brightness + flick) * br_mult * tape_dim
+      local br = (p.brightness + flick) * br_mult * tape_dim * transition_dim
       local lvl = clamp(math.floor(br + 0.5), 1, 15)
 
       -- draw-position jitter, grows subtly with tape (not real position)
@@ -264,7 +269,6 @@ function Particles.draw(mods)
   -- inter-station static speckle (FM tuning): a FAINT dusting between stations
   -- that clears as you land. kept small and dim so it never overwhelms the
   -- sparse scenes (night especially) -- it should whisper, not take over.
-  local tuning = mods.tuning or 0
   if tuning > 0.05 then
     local n = math.floor(tuning * tuning * 6)
     screen.aa(0)
