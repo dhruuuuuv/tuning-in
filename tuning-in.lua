@@ -147,7 +147,19 @@ local function run_boot()
     boot_state = "black"
     clock.sleep(0.5)
 
-    -- give the engine time to load buffers before starting audio (gotcha #12)
+    -- slow volume fade-in, running in parallel with the whole intro (~8s). the
+    -- synth is born at the restored blend/tape/speed (the engine remembers), so
+    -- there's no scene jump -- just the right soundscape gently swelling in.
+    clock.run(function()
+      local vsteps = math.floor(8.0 * 15)
+      for i = 1, vsteps do
+        if not booting then return end -- hand the volume ramp back to tick()
+        state.pause_vol_cur = i / vsteps
+        push_volume()
+        clock.sleep(1 / 15)
+      end
+    end)
+
     -- title fades in over ~1s
     boot_state = "title_in"
     for i = 1, 15 do
@@ -166,32 +178,16 @@ local function run_boot()
     end
     boot_alpha = 0.0
 
-    -- the synth now exists (buffers loaded during the title). push the current
-    -- control values to it: params:bang() ran at init before the synth existed,
-    -- so it only ever received defaults. without this, a restored pset shows the
-    -- right scene but plays birdsong until you touch an encoder.
-    engine.blend(state.blend)
-    push_tape()
-    engine.speed(state.speed)
-    push_volume()
-
-    -- fade sound in from silence over 3s, particles in over 2s
-    -- (input stays gated until the reveal completes -- gotcha #3)
+    -- particles fade in over ~2s (input stays gated until here -- gotcha #3)
     boot_state = "reveal"
-    local steps = 45 -- 3s at 15fps
+    local steps = 30
     for i = 1, steps do
-      local t = i / steps
-      boot_particle = math.min(t * 1.5, 1.0) -- particles reach full at ~2s
-      -- ramp volume multiplier up via pause_vol_cur target
-      state.pause_vol_cur = t
-      push_volume()
+      boot_particle = math.min((i / steps) * 1.5, 1.0)
       clock.sleep(1 / 15)
     end
     boot_particle = 1.0
-    state.pause_vol_cur = 1.0
-    state.pause_vol = 1.0
-    push_volume()
-    booting = false  -- release the input gate; normal running from here
+
+    booting = false  -- release input; tick() finishes the volume ramp to 1.0
     boot_state = "run"
     mark_input()
   end)
@@ -199,8 +195,14 @@ end
 
 function init()
   math.randomseed(util.time() * 1000)
-
   particles.init()
+
+  booting = true
+  boot_particle = 0.0
+  state.pause_vol_cur = 0.0 -- so params:bang() sends volume 0 (born silent)
+
+  -- params:bang() fires the actions, which send blend/tape/speed/volume to the
+  -- engine; the engine remembers them and creates the synth in that state.
   setup_params()
 
   -- point the engine at this script's audio folder (gotcha #11)
@@ -211,9 +213,6 @@ function init()
   redraw_metro.event = tick
   redraw_metro:start()
 
-  booting = true
-  boot_particle = 0.0
-  state.pause_vol_cur = 0.0
   run_boot()
 end
 

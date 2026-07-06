@@ -48,16 +48,12 @@ s.waitForBoot({
 		var baseRate = Lag.kr(speed, 0.15);
 		var vol      = Lag.kr(volume, 0.05);
 		var tuning   = Lag.kr((blend - blend.round(1.0)).abs * 2, 0.05);
-		var sigs, mix, drive, bump, lpf, dropRate, dropTrig, dropEnv, hiss;
+		var sigs, mix, drive, bias, wow, wow2, flut, wowDepth, delayTime, wet, hiss;
 
 		sigs = Array.fill(6, { |i|
 			var buf = bufs[i];
-			var wowRate = LFNoise1.kr(0.1 + (i * 0.013)).range(0.3, 0.9);
-			var wow = SinOsc.kr(wowRate, i * 0.7) * stab * 0.05;
-			var flutRate = LFNoise1.kr(0.3 + (i * 0.04)).range(5, 11);
-			var flut = SinOsc.kr(flutRate, i * 1.3) * stab * 0.011;
-			var drift = LFNoise2.kr(0.03 + (i * 0.007)) * stab * 0.02;
-			var rateMod = baseRate * (1 + wow + flut + drift);
+			var drift = LFNoise2.kr(0.03 + (i * 0.007)) * stab * 0.006;
+			var rateMod = baseRate * (1 + drift);
 			var phase = Phasor.ar(0,
 				BufRateScale.kr(buf) * rateMod, 0, BufFrames.kr(buf));
 			var d = (blend - i) % 6;
@@ -67,20 +63,22 @@ s.waitForBoot({
 		});
 
 		mix = Mix(sigs);
-		drive = stab.linexp(0, 1, 1, 6);
-		mix = (mix * drive).tanh / max(drive, 1);
-		bump = stab.linlin(0, 1, 0, 6);
-		mix = BLowShelf.ar(mix, 100, 0.7, bump);
-		lpf = stab.linexp(0, 1, 20000, 1400);
-		mix = LPF.ar(mix, Lag.kr(lpf, 0.5));
-		dropRate = stab.linlin(0.65, 1, 0, 0.15).max(0);
-		dropTrig = Dust.kr(dropRate);
-		dropEnv = EnvGen.kr(Env.new([1, 0.15, 1], [0.03, 0.08], \sin), dropTrig);
-		mix = mix * dropEnv;
-		mix = LPF.ar(mix, tuning.linexp(0, 1, 18000, 4500).lag(0.08));
+		drive = stab.linexp(0, 1, 1, 5);
+		bias = stab * 0.12;
+		mix = ((mix * drive + bias).tanh - bias.tanh) / max(drive, 1);
+		mix = BLowShelf.ar(mix, 100, 0.7, stab.linlin(0, 1, 0, 5));
+		mix = LPF.ar(mix, stab.linexp(0, 1, 20000, 1600).lag(0.5));
+		wow = SinOsc.kr(LFNoise1.kr(0.08).range(0.5, 1.1));
+		wow2 = SinOsc.kr(LFNoise1.kr(0.05).range(0.15, 0.45), 1.7);
+		flut = SinOsc.kr(LFNoise1.kr(0.4).range(6, 10));
+		wowDepth = ((wow * 0.0035) + (wow2 * 0.0022) + (flut * 0.00018)) * stab;
+		delayTime = (0.010 + wowDepth).clip(0.0003, 0.05);
+		wet = DelayC.ar(mix, 0.06, delayTime);
+		mix = XFade2.ar(mix, wet, stab.linlin(0, 1, -1, -0.15));
 		hiss = BPF.ar(WhiteNoise.ar(1), 5000, 0.8)
-			* stab.linlin(0, 1, 0, 0.06) * LFNoise2.kr(0.5).range(0.7, 1.0);
+			* stab.linlin(0, 1, 0, 0.05) * LFNoise2.kr(0.5).range(0.7, 1.0);
 		mix = mix + hiss;
+		mix = LPF.ar(mix, tuning.linexp(0, 1, 18000, 4500).lag(0.08));
 		mix = mix + (HPF.ar(WhiteNoise.ar(1), 1200) * tuning.squared * 0.08);
 		mix = mix * vol;
 		Out.ar(out, [mix, mix]);

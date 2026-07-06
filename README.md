@@ -30,10 +30,10 @@ adjacent sounds are audible, mixed with an equal-power curve. between two
 stations a faint radio-static swells and the sound muffles slightly, snapping
 back to clarity as you land on a soundscape.
 
-the tape control introduces wow, flutter, saturation, filtering, hiss, and
-occasional dropouts — like a tape reel aging in real time. at low settings it
-adds warmth. past halfway the sound begins to wander. fully clockwise, the
-recordings are barely recognisable — a memory of a landscape.
+the tape control ages the sound like a tape machine: saturation and warmth, a
+softening high end, gentle hiss, and a lush wow-and-flutter wobble. at low
+settings it just adds warmth; past halfway the sound begins to warble and
+wander; fully clockwise the recordings blur into a memory of a landscape.
 
 
 ## screen
@@ -51,13 +51,13 @@ sound.
 from maiden:
 
 ```
-;install https://github.com/muchmetta/tuning-in
+;install https://github.com/dhruuuuuv/tuning-in
 ```
 
 or clone into `~/dust/code/`:
 
 ```
-git clone https://github.com/muchmetta/tuning-in.git
+git clone https://github.com/dhruuuuuv/tuning-in.git
 ```
 
 
@@ -141,5 +141,4 @@ concept + design: muchmetta
 
 audio: see [`audio/AUDIO_CREDITS.md`](audio/AUDIO_CREDITS.md)
 
-inspired by the FM3 buddha machine, chase bliss blooper, and the idea that the
-best technology disappears.
+built on the idea that the best technology disappears.

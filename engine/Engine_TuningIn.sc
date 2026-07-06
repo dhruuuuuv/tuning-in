@@ -12,6 +12,9 @@ Engine_TuningIn : CroneEngine {
 	var <server;
 	var isTone;   // per-index: was this buffer a generated fallback tone?
 	var isLoading = false;   // guard against overlapping load routines
+	// last-received control values, so a (re)created synth is born in the right
+	// state even if lua sent the values before the synth existed.
+	var lastBlend = 0, lastTape = 0, lastSpeed = 1, lastVol = 0;
 
 	*new { arg context, doneCallback;
 		^super.new(context, doneCallback);
@@ -34,16 +37,20 @@ Engine_TuningIn : CroneEngine {
 		});
 
 		this.addCommand("blend", "f", { |msg|
-			if(synth.notNil) { synth.set(\blend, msg[1]) };
+			lastBlend = msg[1];
+			if(synth.notNil) { synth.set(\blend, lastBlend) };
 		});
 		this.addCommand("tape", "f", { |msg|
-			if(synth.notNil) { synth.set(\tape, msg[1]) };
+			lastTape = msg[1];
+			if(synth.notNil) { synth.set(\tape, lastTape) };
 		});
 		this.addCommand("speed", "f", { |msg|
-			if(synth.notNil) { synth.set(\speed, msg[1]) };
+			lastSpeed = msg[1];
+			if(synth.notNil) { synth.set(\speed, lastSpeed) };
 		});
 		this.addCommand("volume", "f", { |msg|
-			if(synth.notNil) { synth.set(\volume, msg[1]) };
+			lastVol = msg[1];
+			if(synth.notNil) { synth.set(\volume, lastVol) };
 		});
 
 		// NOTE: do NOT auto-load here. lua sends the `folder` command from init()
@@ -66,20 +73,16 @@ Engine_TuningIn : CroneEngine {
 			// FM tuning position from the RAW blend: 0 on a station, 1 mid-tune.
 			// (seam-continuous, so lagging the derived value directly is safe.)
 			var tuning   = Lag.kr((blend - blend.round(1.0)).abs * 2, 0.05);
-			var sigs, mix, drive, bump, lpf, dropRate, dropTrig, dropEnv, hiss;
+			var sigs, mix, drive, bias, wow, wow2, flut, wowDepth, delayTime, wet, hiss;
 
-			// --- per-voice: playback + independent pitch modulation ---------
+			// --- per-voice playback -----------------------------------------
 			sigs = Array.fill(6, { |i|
 				var buf = bufs[i];
-				// wow: slow pitch wander; its rate itself wanders (LFNoise1).
-				var wowRate = LFNoise1.kr(0.1 + (i * 0.013)).range(0.3, 0.9);
-				var wow = SinOsc.kr(wowRate, i * 0.7) * tp * 0.05;
-				// flutter: fast shimmer, small depth.
-				var flutRate = LFNoise1.kr(0.3 + (i * 0.04)).range(5, 11);
-				var flut = SinOsc.kr(flutRate, i * 1.3) * tp * 0.011;
-				// drift: brownian speed wander.
-				var drift = LFNoise2.kr(0.03 + (i * 0.007)) * tp * 0.02;
-				var rateMod = baseRate * (1 + wow + flut + drift);
+				// a subtle, slow, independent per-voice drift keeps the two
+				// crossfading voices from wobbling in lockstep. the audible
+				// warble is the post-mix modulation below.
+				var drift = LFNoise2.kr(0.03 + (i * 0.007)) * tp * 0.006;
+				var rateMod = baseRate * (1 + drift);
 				var phase = Phasor.ar(0,
 					BufRateScale.kr(buf) * rateMod,
 					0, BufFrames.kr(buf));
@@ -93,42 +96,39 @@ Engine_TuningIn : CroneEngine {
 				var amp = Lag.kr((dist < 1.0) * cos(dist * (pi / 2)), 0.08);
 				BufRd.ar(1, buf, phase, loop: 1) * amp;
 			});
-
 			mix = Mix(sigs);
 
-			// --- post-mix tape chain ---------------------------------------
-			// saturation (before the head roll-off, as with real tape).
-			drive = tp.linexp(0, 1, 1, 6);
-			mix = (mix * drive).tanh / max(drive, 1);
+			// --- saturation: tanh (odd harmonics) + a little bias asymmetry for
+			// the even-harmonic warmth of tape. subtract bias.tanh to cancel the
+			// DC the bias introduces. ---------------------------------------
+			drive = tp.linexp(0, 1, 1, 5);
+			bias = tp * 0.12;
+			mix = ((mix * drive + bias).tanh - bias.tanh) / max(drive, 1);
 
-			// head bump: gentle low-shelf that keeps the sound full as it darkens.
-			bump = tp.linlin(0, 1, 0, 6);
-			mix = BLowShelf.ar(mix, 100, 0.7, bump);
+			// --- head bump (low warmth) + progressive high roll-off ---------
+			mix = BLowShelf.ar(mix, 100, 0.7, tp.linlin(0, 1, 0, 5));
+			mix = LPF.ar(mix, tp.linexp(0, 1, 20000, 1600).lag(0.5));
 
-			// high-frequency roll-off.
-			lpf = tp.linexp(0, 1, 20000, 1400);
-			mix = LPF.ar(mix, Lag.kr(lpf, 0.5));
+			// --- wow & flutter. several LFOs whose rates themselves wander
+			// (LFNoise1) sum into a short delay-time modulation, so the pitch
+			// warbles organically rather than as a plain vibrato; mixed part-wet
+			// for thickness. -------------------------------------------------
+			wow   = SinOsc.kr(LFNoise1.kr(0.08).range(0.5, 1.1));       // ~1 Hz wow
+			wow2  = SinOsc.kr(LFNoise1.kr(0.05).range(0.15, 0.45), 1.7); // slow wander
+			flut  = SinOsc.kr(LFNoise1.kr(0.4).range(6, 10));           // ~8 Hz flutter
+			wowDepth = ((wow * 0.0035) + (wow2 * 0.0022) + (flut * 0.00018)) * tp;
+			delayTime = (0.010 + wowDepth).clip(0.0003, 0.05);
+			wet = DelayC.ar(mix, 0.06, delayTime);
+			mix = XFade2.ar(mix, wet, tp.linlin(0, 1, -1, -0.15));
 
-			// dropouts: none below 0.65, then increasingly frequent.
-			dropRate = tp.linlin(0.65, 1, 0, 0.15).max(0);
-			dropTrig = Dust.kr(dropRate);
-			dropEnv = EnvGen.kr(
-				Env.new([1, 0.15, 1], [0.03, 0.08], \sin),
-				dropTrig);
-			mix = mix * dropEnv;
-
-			// FM lock-in clarity: off-station a gentle high-cut muffles the mix;
-			// as you land on a soundscape it opens up and snaps into focus.
-			mix = LPF.ar(mix, tuning.linexp(0, 1, 18000, 4500).lag(0.08));
-
-			// hiss: band-shaped, added after the filter (playback electronics).
+			// --- hiss (subtle, from the playback electronics) ---------------
 			hiss = BPF.ar(WhiteNoise.ar(1), 5000, 0.8)
-				* tp.linlin(0, 1, 0, 0.06)
+				* tp.linlin(0, 1, 0, 0.05)
 				* LFNoise2.kr(0.5).range(0.7, 1.0);
 			mix = mix + hiss;
 
-			// FM inter-station static: swells between stations, silent when
-			// locked on. squared so the dead-zone around each station is wide.
+			// --- FM lock-in clarity + inter-station static ------------------
+			mix = LPF.ar(mix, tuning.linexp(0, 1, 18000, 4500).lag(0.08));
 			mix = mix + (HPF.ar(WhiteNoise.ar(1), 1200) * tuning.squared * 0.08);
 
 			mix = mix * vol;
@@ -176,10 +176,11 @@ Engine_TuningIn : CroneEngine {
 
 			server.sync;
 
-			// start silent -- lua fades the volume in during the boot reveal, so
-			// the title screen is quiet rather than blasting the default 0 dB.
+			// born in the last-known state (blend/tape/speed restored from the
+			// pset, volume ~0 during boot) so there's no jump when it appears.
 			synth = Synth(\tuningin, [
-				\out, context.out_b.index, \volume, 0,
+				\out, context.out_b.index,
+				\blend, lastBlend, \tape, lastTape, \speed, lastSpeed, \volume, lastVol,
 				\buf0, buffers[0], \buf1, buffers[1], \buf2, buffers[2],
 				\buf3, buffers[3], \buf4, buffers[4], \buf5, buffers[5]
 			], context.xg);
