@@ -18,14 +18,19 @@ local particles = include("tuning-in/lib/particles")
 -- encoder sensitivities (gotcha #9: tune on real hardware) -----------------
 -- bumped up from the spec estimates: the originals needed several rotations
 -- per control. these target roughly: blend ~1.5 turns, tape/speed ~1 turn.
-local BLEND_SENS = 0.09
+local BLEND_SENS = 0.055
 local TAPE_SENS  = 0.045
 local SPEED_SENS = 0.03
 
 -- per-event delta clamps (addendum UX #7) ----------------------------------
-local BLEND_MAX_STEP = 0.5
+local BLEND_MAX_STEP = 0.3
 local TAPE_MAX_STEP  = 0.15
 local SPEED_MAX_STEP  = 0.08
+
+-- blend is circular: six stations on a loop of circumference 6 (night wraps
+-- back to birdsong). speed can stretch right down to a slow drone.
+local BLEND_WRAP = 6
+local SPEED_MIN = 0.25
 
 local SLEEP_DURATION = 1800 -- 30 minutes, seconds
 
@@ -105,7 +110,7 @@ local function setup_params()
   params:add_separator("tuning in")
 
   params:add_control("blend", "blend",
-    controlspec.new(0, 5, "lin", 0, 0.0))
+    controlspec.new(0, BLEND_WRAP, "lin", 0, 0.0))
   params:set_action("blend", function(v)
     state.blend = v
     engine.blend(v)
@@ -119,7 +124,7 @@ local function setup_params()
   end)
 
   params:add_control("speed", "speed",
-    controlspec.new(0.5, 1.5, "lin", 0, 1.0))
+    controlspec.new(SPEED_MIN, 1.5, "lin", 0, 1.0))
   params:set_action("speed", function(v)
     state.speed = v
     engine.speed(v)
@@ -243,11 +248,11 @@ function tick()
     end
   end
 
-  -- build the interpolated scene for this frame
-  local b = util.clamp(state.blend, 0, 4.999)
+  -- build the interpolated scene for this frame (circular: station 6 wraps to 1)
+  local b = state.blend % BLEND_WRAP
   local idx = math.floor(b) + 1
   local frac = b - math.floor(b)
-  local nxt = math.min(idx + 1, 6)
+  local nxt = (idx % 6) + 1
   lerp_scene_into(blended, scenes[idx], scenes[nxt], frac)
 
   -- idle deepening multipliers
@@ -291,20 +296,16 @@ function enc(n, d)
     state.volume_show = 22 -- ~1.5s at 15fps
 
   elseif n == 2 then
-    -- blend, with endpoint stickiness (addendum UX #4)
-    local sens = BLEND_SENS
-    if state.blend < 0.25 or state.blend > 4.75 then
-      sens = BLEND_SENS * 0.5
-    end
-    local step = util.clamp(d * sens, -BLEND_MAX_STEP, BLEND_MAX_STEP)
-    state.blend = util.clamp(state.blend + step, 0, 5)
+    -- blend, circular: turns endlessly, night wraps back into birdsong
+    local step = util.clamp(d * BLEND_SENS, -BLEND_MAX_STEP, BLEND_MAX_STEP)
+    state.blend = (state.blend + step) % BLEND_WRAP
     params:set("blend", state.blend)
 
   elseif n == 3 then
     if shift_held then
       -- tape speed
       local step = util.clamp(d * SPEED_SENS, -SPEED_MAX_STEP, SPEED_MAX_STEP)
-      local sp = util.clamp(state.speed + step, 0.5, 1.5)
+      local sp = util.clamp(state.speed + step, SPEED_MIN, 1.5)
       if math.abs(sp - 1.0) < 0.02 then sp = 1.0 end -- soft detent
       state.speed = sp
       params:set("speed", sp)
@@ -503,10 +504,15 @@ function redraw()
   local br_mult = state.breath_br_cur
   if booting then br_mult = br_mult * boot_particle end
 
+  -- circular distance to the nearest station (0 = locked on, 1 = mid-tune)
+  local bf = state.blend % 1
+  local tuning = math.min(bf, 1 - bf) * 2
+
   particles.set_targets(blended)
   particles.draw({
     tape = state.tape,
     br_mult = br_mult,
+    tuning = tuning,
   })
 
   -- overlays

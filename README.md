@@ -13,9 +13,9 @@ navigate. just two knobs and a landscape.
 | control | action |
 | --- | --- |
 | **E1** | volume |
-| **E2** | blend — sweep through the six soundscapes |
+| **E2** | blend — an endless loop through the six soundscapes |
 | **E3** | tape — degradation (pristine → warm → worn → memory) |
-| **K1 + E3** | tape speed (0.5× to 1.5×) |
+| **K1 + E3** | tape speed (0.25× to 1.5×) |
 | **K2** tap | pause / resume (2s fade) |
 | **K2** hold 2s | start a 30-minute sleep timer |
 | **K3** tap | reset tape to pristine |
@@ -24,8 +24,11 @@ navigate. just two knobs and a landscape.
 
 ## sound
 
-the blend control crossfades continuously between six loops. at any position
-at most two adjacent sounds are audible, mixed with an equal-power curve.
+the blend control crossfades continuously around a loop of six soundscapes —
+turn past night and it wraps back into birdsong. at any position at most two
+adjacent sounds are audible, mixed with an equal-power curve. between two
+stations a faint radio-static swells and the sound muffles slightly, snapping
+back to clarity as you land on a soundscape.
 
 the tape control introduces wow, flutter, saturation, filtering, hiss, and
 occasional dropouts — like a tape reel aging in real time. at low settings it

@@ -44,24 +44,25 @@ s.waitForBoot({
 		buf0, buf1, buf2, buf3, buf4, buf5;
 
 		var bufs = [buf0, buf1, buf2, buf3, buf4, buf5];
-		var blendLag = Lag.kr(blend, 0.08);
 		var stab     = Lag.kr(tape, 0.15);
 		var baseRate = Lag.kr(speed, 0.15);
 		var vol      = Lag.kr(volume, 0.05);
+		var tuning   = Lag.kr((blend - blend.round(1.0)).abs * 2, 0.05);
 		var sigs, mix, drive, bump, lpf, dropRate, dropTrig, dropEnv, hiss;
 
 		sigs = Array.fill(6, { |i|
 			var buf = bufs[i];
 			var wowRate = LFNoise1.kr(0.1 + (i * 0.013)).range(0.3, 0.9);
-			var wow = SinOsc.kr(wowRate, i * 0.7) * stab * 0.024;
+			var wow = SinOsc.kr(wowRate, i * 0.7) * stab * 0.05;
 			var flutRate = LFNoise1.kr(0.3 + (i * 0.04)).range(5, 11);
-			var flut = SinOsc.kr(flutRate, i * 1.3) * stab * 0.004;
-			var drift = LFNoise2.kr(0.03 + (i * 0.007)) * stab * 0.008;
+			var flut = SinOsc.kr(flutRate, i * 1.3) * stab * 0.011;
+			var drift = LFNoise2.kr(0.03 + (i * 0.007)) * stab * 0.02;
 			var rateMod = baseRate * (1 + wow + flut + drift);
 			var phase = Phasor.ar(0,
 				BufRateScale.kr(buf) * rateMod, 0, BufFrames.kr(buf));
-			var dist = (blendLag - i).abs;
-			var amp = (dist < 1.0) * cos(dist * (pi / 2));
+			var d = (blend - i) % 6;
+			var dist = min(d, 6 - d);
+			var amp = Lag.kr((dist < 1.0) * cos(dist * (pi / 2)), 0.08);
 			BufRd.ar(1, buf, phase, loop: 1) * amp;
 		});
 
@@ -76,9 +77,11 @@ s.waitForBoot({
 		dropTrig = Dust.kr(dropRate);
 		dropEnv = EnvGen.kr(Env.new([1, 0.15, 1], [0.03, 0.08], \sin), dropTrig);
 		mix = mix * dropEnv;
+		mix = LPF.ar(mix, tuning.linexp(0, 1, 18000, 4500).lag(0.08));
 		hiss = BPF.ar(WhiteNoise.ar(1), 5000, 0.8)
 			* stab.linlin(0, 1, 0, 0.06) * LFNoise2.kr(0.5).range(0.7, 1.0);
 		mix = mix + hiss;
+		mix = mix + (HPF.ar(WhiteNoise.ar(1), 1200) * tuning.squared * 0.08);
 		mix = mix * vol;
 		Out.ar(out, [mix, mix]);
 	}).add;
@@ -103,9 +106,9 @@ s.waitForBoot({
 				init, labelWidth: 90, numberWidth: 70).setColors;
 		};
 
-		mk.("blend",     0, 5,   0,   \blend);
-		mk.("tape", 0, 1,   0,   \tape);
-		mk.("speed",     0.5, 1.5, 1, \speed);
+		mk.("blend",     0, 6,   0,   \blend);
+		mk.("tape",      0, 1,   0,   \tape);
+		mk.("speed",     0.25, 1.5, 1, \speed);
 		mk.("volume",    0, 1,   0.5, \volume);
 
 		StaticText(win, 420 @ 40).string_(

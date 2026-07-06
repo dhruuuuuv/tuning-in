@@ -215,15 +215,7 @@ function Particles.draw(mods)
     end
   end
 
-  -- horizon line (steady -- the ground anchor, never moves)
-  if scene.horizon_y and scene.horizon_y >= 0 and scene.horizon_br > 0.5 then
-    local lvl = math.floor(scene.horizon_br * br_mult * tape_dim + 0.5)
-    if lvl > 0 then
-      screen.level(clamp(lvl, 1, 15))
-      screen.rect(0, scene.horizon_y, W, 1)
-      screen.fill()
-    end
-  end
+  -- (no horizon line -- a flat moving/steady line detracts from the scene)
 
   -- particles
   local trail = scene.trail or 0
@@ -279,6 +271,19 @@ function Particles.draw(mods)
     screen.move(shooting.x, shooting.y)
     screen.line(shooting.x - 4, shooting.y - 4)
     screen.stroke()
+  end
+
+  -- inter-station static speckle (FM tuning): faint dust between stations that
+  -- clears as you lock onto a soundscape. squared to match the audio static.
+  local tuning = mods.tuning or 0
+  if tuning > 0.02 then
+    local n = math.floor(tuning * tuning * 36)
+    screen.aa(0)
+    for _ = 1, n do
+      screen.level(math.random(1, 3))
+      screen.pixel(math.random(0, W - 1), math.random(0, H - 1))
+      screen.fill()
+    end
   end
 
   screen.aa(0)
