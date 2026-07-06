@@ -1,6 +1,6 @@
 -- tuning in
 -- v1.0.0 @muchmetta
--- llllllll.co/t/XXXXX
+-- llllllll.co/u/muchmetta
 --
 -- E1 volume
 -- E2 blend

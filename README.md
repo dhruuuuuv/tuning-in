@@ -137,7 +137,7 @@ norns (220802 or later)
 
 ## credits
 
-concept + design: muchmetta
+concept + design: muchmetta ([llllllll.co/u/muchmetta](https://llllllll.co/u/muchmetta))
 
 audio: see [`audio/AUDIO_CREDITS.md`](audio/AUDIO_CREDITS.md)
 
