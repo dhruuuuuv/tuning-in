@@ -1,12 +1,12 @@
--- tuning in: nature soundscapes
+-- tuning in
 -- v1.0.0 @muchmetta
 -- llllllll.co/t/XXXXX
 --
--- E2 blend through six landscapes
--- E3 tape (degradation)
+-- E1 volume
+-- E2 blend
+-- E3 tape
 -- K1+E3 tape speed
---
--- K2 pause / sleep timer
+-- K2 pause / sleep
 -- K3 reset tape
 -- K1+K3 reset speed
 
@@ -30,7 +30,7 @@ local SPEED_MAX_STEP  = 0.08
 -- blend is circular: six stations on a loop of circumference 6 (night wraps
 -- back to birdsong). speed can stretch right down to a slow drone.
 local BLEND_WRAP = 6
-local SPEED_MIN = 0.25
+local SPEED_MIN = 0.05  -- near-frozen drone at the bottom, for kicks
 
 local SLEEP_DURATION = 1800 -- 30 minutes, seconds
 

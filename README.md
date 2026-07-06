@@ -15,7 +15,7 @@ navigate. just two knobs and a landscape.
 | **E1** | volume |
 | **E2** | blend — an endless loop through the six soundscapes |
 | **E3** | tape — degradation (pristine → warm → worn → memory) |
-| **K1 + E3** | tape speed (0.25× to 1.5×) |
+| **K1 + E3** | tape speed (0.05× to 1.5×) |
 | **K2** tap | pause / resume (2s fade) |
 | **K2** hold 2s | start a 30-minute sleep timer |
 | **K3** tap | reset tape to pristine |
@@ -39,11 +39,11 @@ recordings are barely recognisable — a memory of a landscape.
 ## screen
 
 a unified particle system whose behaviour morphs with the blend. birdsong is
-sparse bright dots drifting across a dawn horizon; rain is dense diagonal
-streaks falling; fire is embers rising from a warm glow; night is almost
-black, a few dim stars, an occasional shooting star. the tape control adds
-visual instability — jitter, glitches, a wobbling horizon. the screen ages
-with the sound.
+sparse bright dots drifting at dawn; rain is dense diagonal streaks falling;
+fire is embers rising; night is almost black, a few dim stars, an occasional
+shooting star. between two stations a faint static dusts the screen. the tape
+control adds visual instability — jitter and flicker. the screen ages with the
+sound.
 
 
 ## install

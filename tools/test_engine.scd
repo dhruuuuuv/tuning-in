@@ -108,7 +108,7 @@ s.waitForBoot({
 
 		mk.("blend",     0, 6,   0,   \blend);
 		mk.("tape",      0, 1,   0,   \tape);
-		mk.("speed",     0.25, 1.5, 1, \speed);
+		mk.("speed",     0.05, 1.5, 1, \speed);
 		mk.("volume",    0, 1,   0.5, \volume);
 
 		StaticText(win, 420 @ 40).string_(

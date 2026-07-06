@@ -176,8 +176,10 @@ Engine_TuningIn : CroneEngine {
 
 			server.sync;
 
+			// start silent -- lua fades the volume in during the boot reveal, so
+			// the title screen is quiet rather than blasting the default 0 dB.
 			synth = Synth(\tuningin, [
-				\out, context.out_b.index,
+				\out, context.out_b.index, \volume, 0,
 				\buf0, buffers[0], \buf1, buffers[1], \buf2, buffers[2],
 				\buf3, buffers[3], \buf4, buffers[4], \buf5, buffers[5]
 			], context.xg);
