@@ -1,9 +1,8 @@
 # tuning in
 
-a sound object for norns. six nature soundscapes — birdsong, forest, rain,
-stream, fire, night — blended continuously through a single control. a second
-control ages the sound like a dying tape machine. no menus, no screens to
-navigate. just two knobs and a landscape.
+a sound object for norns. six nature soundscapes: birdsong, forest, rain,
+stream, fire, night. blended continuously through a single control. a second
+control ages and worbles the sound.
 
 ![tuning in](doc/cover.png)
 
@@ -24,26 +23,8 @@ navigate. just two knobs and a landscape.
 
 ## sound
 
-the blend control crossfades continuously around a loop of six soundscapes —
-turn past night and it wraps back into birdsong. at any position at most two
-adjacent sounds are audible, mixed with an equal-power curve. between two
-stations a faint radio-static swells and the sound muffles slightly, snapping
-back to clarity as you land on a soundscape.
-
-the tape control ages the sound like a tape machine: saturation and warmth, a
-softening high end, gentle hiss, and a lush wow-and-flutter wobble. at low
-settings it just adds warmth; past halfway the sound begins to warble and
-wander; fully clockwise the recordings blur into a memory of a landscape.
-
-
-## screen
-
-a unified particle system whose behaviour morphs with the blend. birdsong is
-sparse bright dots drifting at dawn; rain is dense diagonal streaks falling;
-fire is embers rising; night is almost black, a few dim stars, an occasional
-shooting star. between two stations a faint static dusts the screen. the tape
-control adds visual instability — jitter and flicker. the screen ages with the
-sound.
+the blend control crossfades continuously around a loop of six soundscapes:
+turn past night and it wraps back into birdsong.
 
 
 ## install
@@ -140,5 +121,3 @@ norns (220802 or later)
 concept + design: muchmetta ([llllllll.co/u/muchmetta](https://llllllll.co/u/muchmetta))
 
 audio: see [`audio/AUDIO_CREDITS.md`](audio/AUDIO_CREDITS.md)
-
-built on the idea that the best technology disappears.
