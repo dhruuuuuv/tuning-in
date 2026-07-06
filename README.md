@@ -79,14 +79,6 @@ redistributing.
 
 ### preparing loops
 
-two helper scripts (need `ffmpeg`; the search script also needs `curl` +
-`jq`):
-
-```
-# audition CC0 / CC-BY candidates (needs a free freesound API key)
-export FREESOUND_TOKEN=...
-./tools/freesound_search.sh "steady rain loop"
-
 # turn a downloaded recording into a finished loop for a given slot
 #   slots: 1 birdsong  2 forest  3 rain  4 stream  5 fire  6 night
 ./tools/prepare_audio.sh 3 ~/Downloads/rain.wav
